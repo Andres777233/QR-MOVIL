@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SENA Access - Control de Acceso Biométrico</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #07090D;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* Background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(2, 217, 20, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 50%, rgba(2, 217, 20, 0.03) 0%, transparent 50%),
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 40px,
+                    rgba(2, 217, 20, 0.02) 40px,
+                    rgba(2, 217, 20, 0.02) 41px
+                );
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 900px;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Header / Hero */
+        .hero {
+            text-align: center;
+            margin-bottom: 50px;
+            margin-top: 30px;
+        }
+
+        .logo-container {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-container::before {
+            content: '';
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(2, 217, 20, 0.15) 0%, transparent 70%);
+            animation: pulseGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+
+        .logo-container svg {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #02D914 0%, #00E81A 50%, #66FF78 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+
+        .hero .subtitle {
+            font-size: 1.1rem;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .hero .version {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 4px 14px;
+            border: 1px solid rgba(2, 217, 20, 0.3);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: rgba(2, 217, 20, 0.7);
+            letter-spacing: 0.05em;
+        }
+
+        /* Card */
+        .card {
+            background: linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.05) 0%,
+                rgba(255, 255, 255, 0.02) 100%
+            );
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(2, 217, 20, 0.15);
+            border-radius: 24px;
+            padding: 50px 40px;
+            width: 100%;
+            box-shadow:
+                0 0 40px rgba(2, 217, 20, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .card h2 span {
+            color: #02D914;
+        }
+
+        /* Features grid */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 10px;
+        }
+
+        .feature-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            background: rgba(2, 217, 20, 0.05);
+            border-color: rgba(2, 217, 20, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .feature-item .icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .feature-item h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        .feature-item p {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.4;
+        }
+
+        /* Roles section */
+        .roles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin: 30px 0 20px;
+        }
+
+        .role-badge {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .role-badge .emoji {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .role-badge h4 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #02D914;
+            margin-bottom: 4px;
+        }
+
+        .role-badge p {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .divider {
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #02D914, transparent);
+            margin: 30px auto;
+            border: none;
+        }
+
+        /* Download section */
+        .download-section {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .download-section p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            padding: 18px 48px;
+            background: linear-gradient(135deg, #02D914 0%, #00BD11 100%);
+            color: #07090D;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 30px rgba(2, 217, 20, 0.3);
+        }
+
+        .btn-download:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 50px rgba(2, 217, 20, 0.4);
+        }
+
+        .btn-download:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .btn-download svg {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .btn-download .info-text {
+            font-size: 0.7rem;
+            font-weight: 400;
+            opacity: 0.7;
+            display: block;
+            margin-top: 2px;
+        }
+
+        /* Tech info */
+        .tech-info {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .tech-tag {
+            padding: 6px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 0.02em;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        .footer a {
+            color: rgba(2, 217, 20, 0.4);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            color: rgba(2, 217, 20, 0.7);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 16px;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero .subtitle {
+                font-size: 0.85rem;
+            }
+
+            .card {
+                padding: 30px 20px;
+                border-radius: 20px;
+            }
+
+            .btn-download {
+                padding: 16px 32px;
+                font-size: 1rem;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .roles {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Scan line animation for hero */
+        .scan-line {
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #02D914, transparent);
+            margin: 20px auto 0;
+            border-radius: 2px;
+            animation: scanMove 2s ease-in-out infinite;
+        }
+
+        @keyframes scanMove {
+            0% { transform: scaleX(0.3); opacity: 0; }
+            50% { transform: scaleX(1); opacity: 1; }
+            100% { transform: scaleX(0.3); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero -->
+        <div class="hero">
+            <div class="logo-container">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="45" stroke="#02D914" stroke-width="2" fill="none"/>
+                    <path d="M50 20 L80 70 L20 70 Z" stroke="#02D914" stroke-width="2" fill="none"/>
+                    <circle cx="50" cy="58" r="10" fill="#02D914" opacity="0.3"/>
+                    <circle cx="50" cy="58" r="4" fill="#02D914"/>
+                    <line x1="38" y1="44" x2="62" y2="44" stroke="#02D914" stroke-width="1.5"/>
+                    <line x1="30" y1="70" x2="38" y2="58" stroke="#02D914" stroke-width="1.5"/>
+                    <line x1="70" y1="70" x2="62" y2="58" stroke="#02D914" stroke-width="1.5"/>
+                </svg>
+            </div>
+            <h1>SENA Access</h1>
+            <p class="subtitle">Control de Acceso Biométrico</p>
+            <div class="scan-line"></div>
+            <span class="version">v0.2.2</span>
+        </div>
+
+        <!-- Main card -->
+        <div class="card">
+            <h2>¿Qué es <span>SENA Access</span>?</h2>
+            <p style="text-align:center;color:rgba(255,255,255,0.6);line-height:1.7;margin-bottom:10px;font-size:0.95rem;">
+                Aplicación Android para el control de acceso biométrico en centros de formación del
+                <strong style="color:#02D914;">SENA</strong>, específicamente el
+                Centro de Comercio y Servicios (CCyS).
+                Desarrollada con tecnologías modernas para ofrecer una experiencia rápida, segura y elegante.
+            </p>
+
+            <hr class="divider" />
+
+            <h2 style="font-size:1.2rem;">Características</h2>
+            <div class="features">
+                <div class="feature-item">
+                    <span class="icon">🔐</span>
+                    <h3>Login Biométrico</h3>
+                    <p>Autenticación por huella dactilar simulada con escáner de dos dedos</p>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">👤</span>
+                    <h3>3 Roles</h3>
+                    <p>Administrador, Instructor y Aprendiz con paneles personalizados</p>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">📊</span>
+                    <h3>Panel Admin</h3>
+                    <p>Gestión de usuarios, logs de acceso, reportes de novedades e instructores</p>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">📱</span>
+                    <h3>UI Moderna</h3>
+                    <p>Glassmorphism, tema oscuro/claro, animaciones suaves con Jetpack Compose</p>
+                </div>
+            </div>
+
+            <hr class="divider" />
+
+            <h2 style="font-size:1.2rem;">Roles del Sistema</h2>
+            <div class="roles">
+                <div class="role-badge">
+                    <span class="emoji">🛡️</span>
+                    <h4>Administrador</h4>
+                    <p>CRUD usuarios, logs, reportes, gestión completa</p>
+                </div>
+                <div class="role-badge">
+                    <span class="emoji">👨‍🏫</span>
+                    <h4>Instructor</h4>
+                    <p>Dashboard, historial, gestión de usuarios y equipos</p>
+                </div>
+                <div class="role-badge">
+                    <span class="emoji">🎓</span>
+                    <h4>Aprendiz</h4>
+                    <p>Resumen, historial de ingresos, comprobantes</p>
+                </div>
+            </div>
+
+            <hr class="divider" />
+
+            <!-- Download -->
+            <div class="download-section">
+                <h2 style="font-size:1.3rem;margin-bottom:8px;">Descarga la App</h2>
+                <p>APK lista para instalar en dispositivos Android 7.0+ (Nougat)</p>
+                <a href="app-debug.apk" class="btn-download" download="SenaAccess.apk">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span>Descargar APK <span class="info-text">Sena Access v0.2.2 &bull; 19 MB</span></span>
+                </a>
+
+                <div class="tech-info">
+                    <span class="tech-tag">Kotlin</span>
+                    <span class="tech-tag">Jetpack Compose</span>
+                    <span class="tech-tag">Material 3</span>
+                    <span class="tech-tag">minSdk 24</span>
+                    <span class="tech-tag">targetSdk 36</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Proyecto de grado &mdash; SENA Centro de Comercio y Servicios</p>
+            <p style="margin-top:4px;">&copy; 2026 &mdash; Todos los derechos reservados</p>
+        </div>
+    </div>
+</body>
+</html>
